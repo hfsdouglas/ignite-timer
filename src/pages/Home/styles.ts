@@ -29,7 +29,7 @@ export const FormContainer = styled.div`
 `
 
 export const CountdownContainer = styled.div`
-    font-size: 'Roboto Mono', monospace;
+    font-family: 'Roboto Mono', monospace;
     font-size: 10rem;
     line-height: 8rem;
     color: ${props => props.theme["gray-100"]};
