@@ -24,10 +24,16 @@ const NewCycleFromValidationSchema = z.object({
 
 type NewCycleFormData = z.infer<typeof NewCycleFromValidationSchema>
 
-interface 
+interface Cycle {
+    id: string
+    task: string
+    minutesAmount: number
+}
 
 export function Home() {
-    const [] = useState()
+    const [cycles, setCycles] = useState<Cycle[]>([])
+    const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
     const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
         resolver: zodResolver(NewCycleFromValidationSchema),
@@ -37,16 +43,41 @@ export function Home() {
         }
     })
 
-    function handleCreateNewCicle({ task, minutesAmount }: NewCycleFormData) {
+    function handleCreateNewCycle({ task, minutesAmount }: NewCycleFormData) {
+        console.log(task, minutesAmount)
+        const id = String(new Date().getTime())
+
+        const newCycle: Cycle = {
+            id, 
+            task, 
+            minutesAmount
+        }
+
+        setCycles(state => [...state, newCycle])
+        setActiveCycleId(id)
+        
         reset();
     }
+
+    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId)
+
+    console.log(activeCycle)
+
+    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+    const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+    const minutesAmount = Math.floor(currentSeconds / 60)
+    const secondsAmount = currentSeconds % 60
+
+    const minutes = String(minutesAmount).padStart(2, '0')
+    const seconds = String(secondsAmount).padStart(2, '0')
 
     const task = watch('task')
     const isSubmitDisabled = !task
 
     return (
         <HomeContainer>
-            <form onSubmit={handleSubmit(handleCreateNewCicle)} action="">
+            <form onSubmit={handleSubmit(handleCreateNewCycle)}>
                 <FormContainer>
                     <label htmlFor="task">Vou trabalhar em</label>
                     <TaskInput 
@@ -54,7 +85,7 @@ export function Home() {
                         id="task" 
                         placeholder="Dê um nome para o seu projeto"
                         list="task-suggestions"
-                        {...register('task', { valueAsNumber: true })} 
+                        {...register('task')} 
                     />
 
                     <datalist id="task-suggestions">
@@ -72,21 +103,21 @@ export function Home() {
                         step={5}
                         min={5}
                         max={60}
-                        {...register('minutesAmount')} 
+                        {...register('minutesAmount', { valueAsNumber: true })} 
                     />
 
                     <span>minutos.</span>
                 </FormContainer>
 
                 <CountdownContainer>
-                    <span>0</span>
-                    <span>0</span>
+                    <span>{minutes[0]}</span>
+                    <span>{minutes[1]}</span>
                     <Separator>:</Separator>
-                    <span>0</span>
-                    <span>0</span>
+                    <span>{seconds[0]}</span>
+                    <span>{seconds[1]}</span>
                 </CountdownContainer>
 
-                <StartCountdownButton type="submit" disabled={!isSubmitDisabled}>
+                <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
                     <Play size={24} />
                     Começar
                 </StartCountdownButton>
